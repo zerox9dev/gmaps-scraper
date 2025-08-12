@@ -1,3 +1,8 @@
+# --------------------------------------------------------------------------
+# Основний модуль для парсингу даних з Google Maps
+# Main module for scraping data from Google Maps
+# --------------------------------------------------------------------------
+
 import logging
 import platform
 import time
@@ -9,11 +14,18 @@ from .utils import setup_logging, extract_text
 
 
 def handle_cookie_consent(page: Page):
+    # --------------------------------------------------------------------------
+    # Обробка діалогу згоди з файлами cookie від Google
+    # Handle Google cookie consent dialog
+    # --------------------------------------------------------------------------
     """Handle Google cookie consent dialog"""
+    
     try:
+        # Очікування появи діалогу згоди (якщо він існує)
         # Wait for consent dialog to appear (if it exists)
         consent_button = None
         
+        # Спочатку спробувати знайти кнопку "Прийняти всі"
         # Try to find "Accept all" button first
         try:
             consent_button = page.wait_for_selector('button[jsname="b3VHJd"]', timeout=3000)
@@ -25,7 +37,10 @@ def handle_cookie_consent(page: Page):
         except:
             pass
         
+        # --------------------------------------------------------------------------
+        # Спробувати альтернативні селектори для кнопок згоди
         # Try alternative selectors for consent buttons
+        # --------------------------------------------------------------------------
         selectors = [
             '//button[contains(text(), "Accept all")]',
             '//button[contains(text(), "Принять все")]', 
@@ -50,25 +65,68 @@ def handle_cookie_consent(page: Page):
         
     except Exception as e:
         logging.warning(f"Cookie consent handling failed: {e}")
+        # Продовжити в будь-якому випадку, оскільки це не критично
         # Continue anyway as this is not critical
 
 
 def extract_place(page: Page) -> Place:
-    # XPaths
+    # --------------------------------------------------------------------------
+    # Витягування інформації про місце з сторінки Google Maps
+    # Extract place information from Google Maps page
+    # --------------------------------------------------------------------------
+    
+    # --------------------------------------------------------------------------
+    # XPath селектори для різних елементів сторінки
+    # XPath selectors for different page elements
+    # --------------------------------------------------------------------------
+    
+    # Назва місця
+    # Place name
     name_xpath = '//div[@class="TIHn2 "]//h1[@class="DUwDvf lfPIob"]'
+    
+    # Адреса
+    # Address
     address_xpath = '//button[@data-item-id="address"]//div[contains(@class, "fontBodyMedium")]'
+    
+    # Веб-сайт
+    # Website
     website_xpath = '//a[@data-item-id="authority"]//div[contains(@class, "fontBodyMedium")]'
+    
+    # Номер телефону
+    # Phone number
     phone_number_xpath = '//button[contains(@data-item-id, "phone:tel:")]//div[contains(@class, "fontBodyMedium")]'
+    
+    # Кількість відгуків
+    # Reviews count
     reviews_count_xpath = '//div[@class="TIHn2 "]//div[@class="fontBodyMedium dmRWX"]//div//span//span//span[@aria-label]'
+    
+    # Середній рейтинг
+    # Average rating
     reviews_average_xpath = '//div[@class="TIHn2 "]//div[@class="fontBodyMedium dmRWX"]//div//span[@aria-hidden]'
+    
+    # Додаткова інформація про послуги (3 різні блоки)
+    # Additional service information (3 different blocks)
     info1 = '//div[@class="LTs0Rc"][1]'
     info2 = '//div[@class="LTs0Rc"][2]'
     info3 = '//div[@class="LTs0Rc"][3]'
+    
+    # Час роботи (2 різні селектори)
+    # Opening hours (2 different selectors)
     opens_at_xpath = '//button[contains(@data-item-id, "oh")]//div[contains(@class, "fontBodyMedium")]'
     opens_at_xpath2 = '//div[@class="MkV9"]//span[@class="ZDu9vd"]//span[2]'
+    
+    # Тип місця
+    # Place type
     place_type_xpath = '//div[@class="LBgpqf"]//button[@class="DkEaL "]'
+    
+    # Опис/введення
+    # Description/introduction
     intro_xpath = '//div[@class="WeS02d fontBodyMedium"]//div[@class="PYvSYb "]'
 
+    # --------------------------------------------------------------------------
+    # Створення об'єкта місця та витягування основної інформації
+    # Create place object and extract basic information
+    # --------------------------------------------------------------------------
     place = Place()
     place.name = extract_text(page, name_xpath)
     place.address = extract_text(page, address_xpath)
@@ -77,7 +135,10 @@ def extract_place(page: Page) -> Place:
     place.place_type = extract_text(page, place_type_xpath)
     place.introduction = extract_text(page, intro_xpath) or "None Found"
 
-    # Reviews Count
+    # --------------------------------------------------------------------------
+    # Обробка кількості відгуків
+    # Process reviews count
+    # --------------------------------------------------------------------------
     reviews_count_raw = extract_text(page, reviews_count_xpath)
     if reviews_count_raw:
         try:
@@ -85,7 +146,11 @@ def extract_place(page: Page) -> Place:
             place.reviews_count = int(temp)
         except Exception as e:
             logging.warning(f"Failed to parse reviews count: {e}")
-    # Reviews Average
+    
+    # --------------------------------------------------------------------------
+    # Обробка середнього рейтингу
+    # Process average rating
+    # --------------------------------------------------------------------------
     reviews_avg_raw = extract_text(page, reviews_average_xpath)
     if reviews_avg_raw:
         try:
@@ -93,7 +158,11 @@ def extract_place(page: Page) -> Place:
             place.reviews_average = float(temp)
         except Exception as e:
             logging.warning(f"Failed to parse reviews average: {e}")
-    # Store Info
+    
+    # --------------------------------------------------------------------------
+    # Обробка інформації про послуги магазину
+    # Process store service information
+    # --------------------------------------------------------------------------
     for idx, info_xpath in enumerate([info1, info2, info3]):
         info_raw = extract_text(page, info_xpath)
         if info_raw:
@@ -106,7 +175,11 @@ def extract_place(page: Page) -> Place:
                     place.in_store_pickup = "Yes"
                 if 'delivery' in check:
                     place.store_delivery = "Yes"
-    # Opens At
+    
+    # --------------------------------------------------------------------------
+    # Обробка часу роботи
+    # Process opening hours
+    # --------------------------------------------------------------------------
     opens_at_raw = extract_text(page, opens_at_xpath)
     if opens_at_raw:
         opens = opens_at_raw.split('⋅')
