@@ -1,33 +1,30 @@
 # GMaps Scraper
-# GMaps Scraper
 
-Простий скрипт для видобування даних про бізнеси з Google Maps: назви, адреси, телефони, рейтинги та відгуки.  
+#Простий скрипт для видобування даних про бізнеси з Google Maps: назви, адреси, телефони, рейтинги та відгуки.  
 Simple script for extracting business data from Google Maps: names, addresses, phones, ratings and reviews.
 
 ## Вимоги  
 ## Requirements
 
 - Python 3.8+  
-- Python 3.8+
 - Google Chrome  
-- Google Chrome
 
 ## Можливості  
 ## Features
 
-- Видобуває дані про компанії (назва, адреса, телефон, сайт)  
+- #Видобуває дані про компанії (назва, адреса, телефон, сайт)  
 - Extracts company data (name, address, phone, website)
-- Збирає рейтинги та кількість відгуків  
+- #Збирає рейтинги та кількість відгуків  
 - Collects ratings and review counts
-- Визначає час роботи  
+- #Визначає час роботи  
 - Determines working hours
-- Зберігає дані у CSV файл  
+- #Зберігає дані у CSV файл  
 - Saves data to CSV file
 
 ## Встановлення  
 ## Installation
 
-1. Клонуйте проект:  
+1. #Клонуйте проект:  
 1. Clone the project:
    ```bash
    git clone <your-repo-url>
@@ -88,4 +85,3 @@ python main.py -s "Ресторани в Києві" -t 10 --headless
 ## License
 
 MIT  
-MIT
